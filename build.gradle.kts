@@ -4,22 +4,20 @@ import org.jooq.meta.jaxb.Logging
 import org.jooq.meta.jaxb.Property
 
 plugins {
-	id("org.springframework.boot") version "3.2.4"
-	id("io.spring.dependency-management") version "1.1.4"
-	kotlin("jvm") version "1.9.23"
-	kotlin("plugin.spring") version "1.9.23"
-	kotlin("plugin.jpa") version "1.9.23"
-
-	id("nu.studer.jooq") version "9.0"
-
-	id("org.flywaydb.flyway") version "9.22.3"
+	id("org.springframework.boot") version libs.versions.springboot.get()
+	id("io.spring.dependency-management") version libs.versions.springbootManagement.get()
+	kotlin("jvm") version libs.versions.kotlin.get()
+	kotlin("plugin.spring") version libs.versions.kotlin.get()
+	kotlin("plugin.jpa") version libs.versions.kotlin.get()
+	id("nu.studer.jooq") version libs.versions.jooqPlugin.get()
+	id("org.flywaydb.flyway") version libs.versions.flywayPlugin.get()
 }
 
 group = "com.xama"
 version = "0.0.1-SNAPSHOT"
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
@@ -30,12 +28,14 @@ dependencies {
 	//spring boot starter
 	implementation("org.springframework.boot:spring-boot-starter-cache")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 	implementation("org.springframework.boot:spring-boot-starter-jooq")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 
-	//database-for flyway migration and jooq stub generation
-	runtimeOnly("org.postgresql:postgresql")
+	//reactive database
+	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+	implementation("io.r2dbc:r2dbc-spi:${libs.versions.r2dbcSpi.get()}")
+	implementation("io.r2dbc:r2dbc-pool:${libs.versions.r2dbcPool.get()}")
+	implementation("org.postgresql:r2dbc-postgresql:${libs.versions.r2dbcPostgresql.get()}")
 
 	//kotlin
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -43,27 +43,30 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
-	implementation("org.flywaydb:flyway-core")
-
-	runtimeOnly("org.postgresql:r2dbc-postgresql")
+	//flyway
+	implementation("org.flywaydb:flyway-core:${libs.versions.flyway.get()}")
+	implementation("org.flywaydb:flyway-database-postgresql:${libs.versions.flyway.get()}")
 
 	// Add jOOQ dependencies
 	implementation("org.jooq:jooq")
 	implementation("org.jooq:jooq-meta")
 	implementation("org.jooq:jooq-codegen")
 
-	implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+	implementation("com.github.ben-manes.caffeine:caffeine:${libs.versions.caffeine.get()}")
+	implementation("org.apache.logging.log4j:log4j:${libs.versions.log4j.get()}")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("io.projectreactor:reactor-test")
 
-	implementation("org.apache.logging.log4j:log4j:2.23.1")
+	//database-for flyway migration and jooq stub generation
+	runtimeOnly("org.postgresql:postgresql:${libs.versions.postgresql.get()}")
+
+
 }
 
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs += "-Xjsr305=strict"
-		jvmTarget = "21"
+		jvmTarget = "17"
 	}
 }
 
@@ -137,7 +140,7 @@ jooq {
 						isFluentSetters = true
 					}
 					target.apply {
-						packageName = "com.example.generated"
+						packageName = "com.xama.reacttests.generated"
 						directory = "src/main/jooq"  // default (can be omitted)
 					}
 					strategy.name = "org.jooq.codegen.DefaultGeneratorStrategy"

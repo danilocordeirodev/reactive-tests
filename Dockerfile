@@ -3,7 +3,7 @@ FROM eclipse-temurin:19
 # Set the working directory to /app
 WORKDIR /app
 
-COPY build/libs/kotlin-*-SNAPSHOT.jar /service.jar
+COPY build/libs/react-tests-*-SNAPSHOT.jar /service.jar
 
 # Expose port 8080
 EXPOSE 8080
